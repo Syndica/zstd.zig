@@ -1,12 +1,15 @@
 const std = @import("std");
 
+const package_name = "zstd";
+const package_path = "src/main.zig";
+
 pub fn build(b: *std.build.Builder) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
     const ZSTD_C_PATH = "vendor/lib";
     const zstd_lib = b.addStaticLibrary(.{
-        .name = "zstd",
+        .name = package_name,
         .target = target,
         .optimize = optimize,
     });
@@ -56,6 +59,11 @@ pub fn build(b: *std.build.Builder) void {
     }, &.{});
     zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
     b.installArtifact(zstd_lib);
+
+    _ = b.addModule(package_name, .{ 
+        .source_file = .{ .path = package_path },
+        .dependencies = &.{},
+    });
 
     // tests
     const tests = b.addTest(.{
