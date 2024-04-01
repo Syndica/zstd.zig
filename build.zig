@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const package_name = "zstd";
-const package_path = "src/main.zig";
+const package_path = "src/lib.zig";
 
 pub fn build(b: *std.build.Builder) void {
     const optimize = b.standardOptimizeOption(.{});
@@ -60,23 +60,21 @@ pub fn build(b: *std.build.Builder) void {
     zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
     b.installArtifact(zstd_lib);
 
-    _ = b.addModule(package_name, .{ 
+    _ = b.addModule(package_name, .{
         .source_file = .{ .path = package_path },
         .dependencies = &.{},
     });
 
     // tests
     const tests = b.addTest(.{
-        .name = "zstd-tests",
         .target = target,
         .optimize = optimize,
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = .{ .path = "src/tests.zig" },
     });
     tests.linkLibrary(zstd_lib);
 
+    const run_tests = b.addRunArtifact(tests);
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&zstd_lib.step);
-
-    const run_tests = b.addRunArtifact(tests);
     test_step.dependOn(&run_tests.step);
 }
