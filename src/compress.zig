@@ -214,7 +214,7 @@ pub const Compressor = struct {
         if (isError(c.ZSTD_CCtx_setParameter(h, 104, params.search_log))) return error.InvalidParameters;
         if (isError(c.ZSTD_CCtx_setParameter(h, 105, params.min_match))) return error.InvalidParameters;
         if (isError(c.ZSTD_CCtx_setParameter(h, 106, params.target_length))) return error.InvalidParameters;
-        if (isError(c.ZSTD_CCtx_setParameter(h, 107, if (params.strategy) |v| @enumToInt(v) else 0))) return error.InvalidParameters;
+        if (isError(c.ZSTD_CCtx_setParameter(h, 107, if (params.strategy) |v| @intFromEnum(v) else 0))) return error.InvalidParameters;
 
         if (params.enable_long_distance_matching) |v| // https://sourcegraph.com/github.com/facebook/zstd@e47e674cd09583ff0503f0f6defd6d23d8b718d3/-/blob/lib/zstd.h?L1322
             if (isError(c.ZSTD_CCtx_setParameter(h, 160, if (v) 1 else 2))) return error.InvalidParameters;
@@ -241,7 +241,7 @@ pub const Compressor = struct {
 
     // no worries. `error.Generic` is unreachable
     pub fn reset(self: Compressor, directive: ResetDirective) error{WrongStage}!void {
-        if (isError(c.ZSTD_CCtx_reset(self.handle, @enumToInt(directive))))
+        if (isError(c.ZSTD_CCtx_reset(self.handle, @intFromEnum(directive))))
             return error.WrongStage;
     }
 
@@ -253,11 +253,11 @@ pub const Compressor = struct {
     pub fn compress(self: Compressor, dest: []u8, src: []const u8, compression_level: i32) Error![]const u8 {
         return dest[0..try checkError(c.ZSTD_compressCCtx(
             self.handle,
-            @ptrCast(*anyopaque, dest),
+            @as(*anyopaque, @ptrCast(dest)),
             dest.len,
-            @ptrCast(*const anyopaque, src),
+            @as(*const anyopaque, @ptrCast(src)),
             src.len,
-            @intCast(c_int, compression_level),
+            @as(c_int, @intCast(compression_level)),
         ))];
     }
 
@@ -271,9 +271,9 @@ pub const Compressor = struct {
     pub fn compress2(self: Compressor, dest: []u8, src: []const u8) Error![]const u8 {
         return dest[0..try checkError(c.ZSTD_compress2(
             self.handle,
-            @ptrCast(*anyopaque, dest),
+            @as(*anyopaque, @ptrCast(dest)),
             dest.len,
-            @ptrCast(*const anyopaque, src),
+            @as(*const anyopaque, @ptrCast(src)),
             src.len,
         ))];
     }
@@ -285,9 +285,9 @@ pub const Compressor = struct {
     pub fn compressUsingDict(self: Compressor, dest: []u8, src: []const u8, dict: CDictionary) Error![]const u8 {
         return dest[0..try checkError(c.ZSTD_compress_usingCDict(
             self.handle,
-            @ptrCast(*anyopaque, dest),
+            @as(*anyopaque, @ptrCast(dest)),
             dest.len,
-            @ptrCast(*const anyopaque, src),
+            @as(*const anyopaque, @ptrCast(src)),
             src.len,
             dict.handle,
         ))];
@@ -314,9 +314,9 @@ pub const Compressor = struct {
     pub fn compressStream(self: Compressor, in: *InBuffer, out: *OutBuffer, end_directive: EndDirective) Error!usize {
         return checkError(c.ZSTD_compressStream2(
             self.handle,
-            @ptrCast([*c]c.ZSTD_outBuffer, out),
-            @ptrCast([*c]c.ZSTD_inBuffer, in),
-            @enumToInt(end_directive),
+            @as([*c]c.ZSTD_outBuffer, @ptrCast(out)),
+            @as([*c]c.ZSTD_inBuffer, @ptrCast(in)),
+            @intFromEnum(end_directive),
         ));
     }
 
@@ -351,7 +351,7 @@ pub const CDictionary = struct {
     ///     This can be useful in a pipeline featuring `Compressor.compressUsingDict()` exclusively,
     ///     expecting a `Dictionary` parameter with any data, including those without a known dictionary.
     pub fn init(buf: []const u8, compression_level: i32) ?CDictionary {
-        return CDictionary{ .handle = c.ZSTD_createCDict(@ptrCast(*const anyopaque, buf), buf.len, compression_level) orelse return null };
+        return CDictionary{ .handle = c.ZSTD_createCDict(@as(*const anyopaque, @ptrCast(buf)), buf.len, compression_level) orelse return null };
     }
 
     pub fn deinit(self: CDictionary) void {
@@ -370,11 +370,11 @@ pub const CDictionary = struct {
 /// Returns an slice of written data, which points to `dest`.
 pub fn compress(dest: []u8, src: []const u8, compression_level: i32) Error![]const u8 {
     return dest[0..try checkError(c.ZSTD_compress(
-        @ptrCast(*anyopaque, dest),
+        @as(*anyopaque, @ptrCast(dest)),
         dest.len,
-        @ptrCast(*const anyopaque, src),
+        @as(*const anyopaque, @ptrCast(src)),
         src.len,
-        @intCast(c_int, compression_level),
+        @as(c_int, @intCast(compression_level)),
     ))];
 }
 
@@ -404,7 +404,7 @@ pub fn compress(dest: []u8, src: []const u8, compression_level: i32) Error![]con
 ///   Always ensure return value fits within application's authorized limits.
 ///   Each application can set its own limits.
 pub fn getFrameContentSize(src: []const u8) error{ Unknown, Generic }!usize {
-    return switch (c.ZSTD_getFrameContentSize(@ptrCast(*const anyopaque, src), src.len)) {
+    return switch (c.ZSTD_getFrameContentSize(@as(*const anyopaque, @ptrCast(src)), src.len)) {
         ZSTD_CONTENTSIZE_UNKNOWN => error.Unknown,
         ZSTD_CONTENTSIZE_ERROR => error.Generic,
         else => |v| v,
@@ -418,19 +418,19 @@ pub fn getFrameContentSize(src: []const u8) error{ Unknown, Generic }!usize {
 /// suitable to pass as `srcSize` to `ZSTD_decompress` or similar,
 /// or an error code if input is invalid
 pub fn findFrameCompressedSize(src: []const u8) usize {
-    return c.ZSTD_findFrameCompressedSize(@ptrCast(*const anyopaque, src), src.len);
+    return c.ZSTD_findFrameCompressedSize(@as(*const anyopaque, @ptrCast(src)), src.len);
 }
 
 pub fn minCompressionLevel() i32 {
-    return @intCast(i32, c.ZSTD_minCLevel());
+    return @as(i32, @intCast(c.ZSTD_minCLevel()));
 }
 
 pub fn maxCompressionLevel() i32 {
-    return @intCast(i32, c.ZSTD_maxCLevel());
+    return @as(i32, @intCast(c.ZSTD_maxCLevel()));
 }
 
 pub fn defaultCompressionLevel() i32 {
-    return @intCast(i32, c.ZSTD_defaultCLevel());
+    return @as(i32, @intCast(c.ZSTD_defaultCLevel()));
 }
 
 /// Returns maximum compressed size in worst case single-pass scenario

@@ -42,16 +42,16 @@ pub const Decompressor = struct {
 
     // no worries. `error.Generic` is unreachable
     pub fn reset(self: Decompressor, directive: ResetDirective) error{WrongStage}!void {
-        if (isError(c.ZSTD_DCtx_reset(self.handle, @enumToInt(directive))))
+        if (isError(c.ZSTD_DCtx_reset(self.handle, @intFromEnum(directive))))
             return error.WrongStage;
     }
 
     pub fn decompress(self: Decompressor, dest: []u8, src: []const u8) Error![]const u8 {
         return dest[0..try checkError(c.ZSTD_decompressDCtx(
             self.handle,
-            @ptrCast(*anyopaque, dest),
+            @as(*anyopaque, @ptrCast(dest)),
             dest.len,
-            @ptrCast(*const anyopaque, src),
+            @as(*const anyopaque, @ptrCast(src)),
             src.len,
         ))];
     }
@@ -59,9 +59,9 @@ pub const Decompressor = struct {
     pub fn decompressUsingDict(self: Decompressor, dest: []u8, src: []const u8, dict: DDictionary) Error![]const u8 {
         return dest[0..try checkError(c.ZSTD_decompress_usingDDict(
             self.handle,
-            @ptrCast(*anyopaque, dest),
+            @as(*anyopaque, @ptrCast(dest)),
             dest.len,
-            @ptrCast(*const anyopaque, src),
+            @as(*const anyopaque, @ptrCast(src)),
             src.len,
             dict.handle,
         ))];
@@ -70,8 +70,8 @@ pub const Decompressor = struct {
     pub fn decompressStream(self: Decompressor, in: *InBuffer, out: *OutBuffer) Error!usize {
         return checkError(c.ZSTD_decompressStream(
             self.handle,
-            @ptrCast([*c]c.ZSTD_outBuffer, out),
-            @ptrCast([*c]c.ZSTD_inBuffer, in),
+            @as([*c]c.ZSTD_outBuffer, @ptrCast(out)),
+            @as([*c]c.ZSTD_inBuffer, @ptrCast(in)),
         ));
     }
 
@@ -91,7 +91,7 @@ pub const DDictionary = struct {
     handle: *c.ZSTD_DDict,
 
     pub fn init(buf: []const u8) ?DDictionary {
-        return .{ .handle = c.ZSTD_createDDict(@ptrCast(*const anyopaque, buf), buf.len) orelse return null };
+        return .{ .handle = c.ZSTD_createDDict(@as(*const anyopaque, @ptrCast(buf)), buf.len) orelse return null };
     }
 
     pub fn deinit(self: DDictionary) void {
@@ -109,9 +109,9 @@ pub const DDictionary = struct {
 /// Returns an slice of written data, which points to `dest`
 pub fn decompress(dest: []u8, src: []const u8) Error![]const u8 {
     return dest[0..try checkError(c.ZSTD_decompress(
-        @ptrCast(*anyopaque, dest),
+        @as(*anyopaque, @ptrCast(dest)),
         dest.len,
-        @ptrCast(*const anyopaque, src),
+        @as(*const anyopaque, @ptrCast(src)),
         src.len,
     ))];
 }

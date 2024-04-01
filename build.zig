@@ -4,14 +4,17 @@ pub fn build(b: *std.build.Builder) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    // library
-
-    const lib = b.addStaticLibrary(.{
+    const ZSTD_C_PATH = "vendor/lib";
+    const zstd_lib = b.addStaticLibrary(.{
         .name = "zstd",
         .target = target,
         .optimize = optimize,
     });
-    lib.addIncludePath("vendor/include");
+    zstd_lib.linkLibC();
+    zstd_lib.addIncludePath(.{ .path = ZSTD_C_PATH });
+    zstd_lib.installHeader(ZSTD_C_PATH ++ "/zstd.h", "zstd.h");
+    zstd_lib.installHeader(ZSTD_C_PATH ++ "/zstd_errors.h", "zstd_errors.h");
+
     const config_header = b.addConfigHeader(
         .{
             .style = .{ .autoconf = .{ .path = "config.h.in" } },
@@ -21,51 +24,51 @@ pub fn build(b: *std.build.Builder) void {
             .ZSTD_LEGACY_SUPPORT = null,
         },
     );
-    lib.addConfigHeader(config_header);
-    lib.addCSourceFiles(&.{
-        "vendor/lib/common/debug.c",
-        "vendor/lib/common/entropy_common.c",
-        "vendor/lib/common/error_private.c",
-        "vendor/lib/common/fse_decompress.c",
-        "vendor/lib/common/pool.c",
-        "vendor/lib/common/threading.c",
-        "vendor/lib/common/xxhash.c",
-        "vendor/lib/common/zstd_common.c",
+    zstd_lib.addConfigHeader(config_header);
+    zstd_lib.addCSourceFiles(&.{
+        ZSTD_C_PATH ++ "/common/debug.c",
+        ZSTD_C_PATH ++ "/common/entropy_common.c",
+        ZSTD_C_PATH ++ "/common/error_private.c",
+        ZSTD_C_PATH ++ "/common/fse_decompress.c",
+        ZSTD_C_PATH ++ "/common/pool.c",
+        ZSTD_C_PATH ++ "/common/threading.c",
+        ZSTD_C_PATH ++ "/common/xxhash.c",
+        ZSTD_C_PATH ++ "/common/zstd_common.c",
 
-        "vendor/lib/compress/zstd_double_fast.c",
-        "vendor/lib/compress/zstd_compress_literals.c",
-        "vendor/lib/compress/zstdmt_compress.c",
-        "vendor/lib/compress/zstd_opt.c",
-        "vendor/lib/compress/zstd_compress_sequences.c",
-        "vendor/lib/compress/zstd_lazy.c",
-        "vendor/lib/compress/hist.c",
-        "vendor/lib/compress/zstd_ldm.c",
-        "vendor/lib/compress/huf_compress.c",
-        "vendor/lib/compress/zstd_compress_superblock.c",
-        "vendor/lib/compress/zstd_compress.c",
-        "vendor/lib/compress/fse_compress.c",
-        "vendor/lib/compress/zstd_fast.c",
+        ZSTD_C_PATH ++ "/compress/zstd_double_fast.c",
+        ZSTD_C_PATH ++ "/compress/zstd_compress_literals.c",
+        ZSTD_C_PATH ++ "/compress/zstdmt_compress.c",
+        ZSTD_C_PATH ++ "/compress/zstd_opt.c",
+        ZSTD_C_PATH ++ "/compress/zstd_compress_sequences.c",
+        ZSTD_C_PATH ++ "/compress/zstd_lazy.c",
+        ZSTD_C_PATH ++ "/compress/hist.c",
+        ZSTD_C_PATH ++ "/compress/zstd_ldm.c",
+        ZSTD_C_PATH ++ "/compress/huf_compress.c",
+        ZSTD_C_PATH ++ "/compress/zstd_compress_superblock.c",
+        ZSTD_C_PATH ++ "/compress/zstd_compress.c",
+        ZSTD_C_PATH ++ "/compress/fse_compress.c",
+        ZSTD_C_PATH ++ "/compress/zstd_fast.c",
 
-        "vendor/lib/decompress/zstd_decompress.c",
-        "vendor/lib/decompress/zstd_ddict.c",
-        "vendor/lib/decompress/zstd_decompress_block.c",
-        "vendor/lib/decompress/huf_decompress.c",
+        ZSTD_C_PATH ++ "/decompress/zstd_decompress.c",
+        ZSTD_C_PATH ++ "/decompress/zstd_ddict.c",
+        ZSTD_C_PATH ++ "/decompress/zstd_decompress_block.c",
+        ZSTD_C_PATH ++ "/decompress/huf_decompress.c",
     }, &.{});
-    lib.addAssemblyFile("vendor/lib/decompress/huf_decompress_amd64.S");
-    lib.linkLibC();
-    lib.install();
+    zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
+    b.installArtifact(zstd_lib);
 
     // tests
-
-    const main_tests = b.addTest(.{
+    const tests = b.addTest(.{
         .name = "zstd-tests",
         .target = target,
         .optimize = optimize,
         .root_source_file = .{ .path = "src/main.zig" },
     });
-
-    main_tests.linkLibrary(lib);
+    tests.linkLibrary(zstd_lib);
 
     const test_step = b.step("test", "Run library tests");
-    test_step.dependOn(&main_tests.run().step);
+    test_step.dependOn(&zstd_lib.step);
+
+    const run_tests = b.addRunArtifact(tests);
+    test_step.dependOn(&run_tests.step);
 }

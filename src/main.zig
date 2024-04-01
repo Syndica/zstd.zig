@@ -9,42 +9,7 @@ const comp = @import("compress.zig");
 const types = @import("types.zig");
 const decomp = @import("decompress.zig");
 const testing = std.testing;
-
-pub const frame_header_size_max = c.ZSTD_FRAMEHEADERSIZE_MAX;
-pub const skippable_header_size = c.ZSTD_SKIPPABLEHEADERSIZE;
-pub const window_log_max_32 = c.ZSTD_WINDOWLOG_MAX_32;
-pub const window_log_max_64 = c.ZSTD_WINDOWLOG_MAX_64;
-pub const window_log_max = c.ZSTD_WINDOWLOG_MAX;
-pub const window_log_min = c.ZSTD_WINDOWLOG_MIN;
-pub const hash_log_max = c.ZSTD_HASHLOG_MAX;
-pub const hash_log_min = c.ZSTD_HASHLOG_MIN;
-pub const chain_log_max_32 = c.ZSTD_CHAINLOG_MAX_32;
-pub const chain_log_max_64 = c.ZSTD_CHAINLOG_MAX_64;
-pub const chain_log_max = c.ZSTD_CHAINLOG_MAX;
-pub const chain_log_min = c.ZSTD_CHAINLOG_MIN;
-pub const search_log_max = c.ZSTD_SEARCHLOG_MAX;
-pub const search_log_min = c.ZSTD_SEARCHLOG_MIN;
-pub const min_match_max = c.ZSTD_MINMATCH_MAX;
-pub const min_match_min = c.ZSTD_MINMATCH_MIN;
-pub const target_length_max = c.ZSTD_TARGETLENGTH_MAX;
-pub const target_length_min = c.ZSTD_TARGETLENGTH_MIN;
-pub const strategy_min = c.ZSTD_STRATEGY_MIN;
-pub const strategy_max = c.ZSTD_STRATEGY_MAX;
-pub const overlap_log_min = c.ZSTD_OVERLAPLOG_MIN;
-pub const overlap_log_max = c.ZSTD_OVERLAPLOG_MAX;
-pub const window_log_limit_default = c.ZSTD_WINDOWLOG_LIMIT_DEFAULT;
-pub const ldm_hash_log_min = c.ZSTD_LDM_HASHLOG_MIN;
-pub const ldm_hash_log_max = c.ZSTD_LDM_HASHLOG_MAX;
-pub const ldm_min_match_min = c.ZSTD_LDM_MINMATCH_MIN;
-pub const ldm_min_match_max = c.ZSTD_LDM_MINMATCH_MAX;
-pub const ldm_bucket_size_log_min = c.ZSTD_LDM_BUCKETSIZELOG_MIN;
-pub const ldm_bucket_size_log_max = c.ZSTD_LDM_BUCKETSIZELOG_MAX;
-pub const ldm_hash_rate_log_min = c.ZSTD_LDM_HASHRATELOG_MIN;
-pub const ldm_hash_rate_log_max = c.ZSTD_LDM_HASHRATELOG_MAX;
-pub const target_cblock_size_min = c.ZSTD_TARGETCBLOCKSIZE_MIN;
-pub const target_cblock_size_max = c.ZSTD_TARGETCBLOCKSIZE_MAX;
-pub const src_size_hint_min = c.ZSTD_SRCSIZEHINT_MIN;
-pub const src_size_hint_max = c.ZSTD_SRCSIZEHINT_MAX;
+const test_str = @embedFile("types.zig");
 
 pub fn version() std.SemanticVersion {
     return .{
@@ -57,8 +22,6 @@ pub fn version() std.SemanticVersion {
 test "refernece decls" {
     testing.refAllDeclsRecursive(comp);
 }
-
-const test_str = @embedFile("types.zig");
 
 test "compress/decompress" {
     var comp_out: [1024]u8 = undefined;
