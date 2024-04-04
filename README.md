@@ -22,3 +22,31 @@ pub fn build(b: *std.Build) void {
     // ...
 }
 ```
+
+## usage 
+```zig
+const ZstdReader = @import("zstd").Reader;
+...
+
+pub fn main() {
+    const path = ...
+
+    const file = try std.fs.cwd().openFile(path, .{});
+    defer file.close();
+
+    const file_stat = try file.stat();
+    const file_size: u64 = @intCast(file_stat.size);
+    var memory = try std.os.mmap(
+        null,
+        file_size,
+        std.os.PROT.READ,
+        std.os.MAP.PRIVATE,
+        file.handle,
+        0,
+    );
+    var decompressed_stream = try ZstdReader.init(memory);
+    var reader = decompressed_stream.reader();
+
+    ...
+}
+```
