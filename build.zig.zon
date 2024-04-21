@@ -2,5 +2,9 @@
     .name = "zstd",
     .version = "0.0.1",
     .dependencies = .{},
-    .paths = .{"src"},
+    .paths = .{
+        "build.zig.zon",
+        "build.zig",
+        "src",
+    },
 }
