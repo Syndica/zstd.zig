@@ -5,6 +5,8 @@
     .paths = .{
         "build.zig.zon",
         "build.zig",
+        "vendor",
+        "vendor/lib",
         "src",
     },
 }
