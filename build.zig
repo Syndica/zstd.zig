@@ -3,7 +3,7 @@ const std = @import("std");
 const package_name = "zstd";
 const package_path = "src/lib.zig";
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
@@ -15,8 +15,8 @@ pub fn build(b: *std.build.Builder) void {
     });
     zstd_lib.linkLibC();
     zstd_lib.addIncludePath(.{ .path = ZSTD_C_PATH });
-    zstd_lib.installHeader(ZSTD_C_PATH ++ "/zstd.h", "zstd.h");
-    zstd_lib.installHeader(ZSTD_C_PATH ++ "/zstd_errors.h", "zstd_errors.h");
+    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd.h" }, "");
+    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd_errors.h" }, "");
 
     const config_header = b.addConfigHeader(
         .{
@@ -28,7 +28,7 @@ pub fn build(b: *std.build.Builder) void {
         },
     );
     zstd_lib.addConfigHeader(config_header);
-    zstd_lib.addCSourceFiles(&.{
+    zstd_lib.addCSourceFiles(.{ .files = &.{
         ZSTD_C_PATH ++ "/common/debug.c",
         ZSTD_C_PATH ++ "/common/entropy_common.c",
         ZSTD_C_PATH ++ "/common/error_private.c",
@@ -56,13 +56,13 @@ pub fn build(b: *std.build.Builder) void {
         ZSTD_C_PATH ++ "/decompress/zstd_ddict.c",
         ZSTD_C_PATH ++ "/decompress/zstd_decompress_block.c",
         ZSTD_C_PATH ++ "/decompress/huf_decompress.c",
-    }, &.{});
+    } });
     zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
     b.installArtifact(zstd_lib);
 
     _ = b.addModule(package_name, .{
-        .source_file = .{ .path = package_path },
-        .dependencies = &.{},
+        .root_source_file = .{ .path = package_path },
+        .imports = &.{},
     });
 
     // tests
