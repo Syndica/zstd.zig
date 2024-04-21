@@ -20,9 +20,10 @@ pub fn build(b: *std.Build) void {
 
     const config_header = b.addConfigHeader(
         .{
-            .style = .{ .autoconf = .{ .path = "config.h.in" } },
+            .style = .blank,
         },
         .{
+            .ZSTD_CONFIG_H = void,
             .ZSTD_MULTITHREAD_SUPPORT_DEFAULT = null,
             .ZSTD_LEGACY_SUPPORT = null,
         },
