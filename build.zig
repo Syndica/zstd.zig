@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
             .style = .blank,
         },
         .{
-            .ZSTD_CONFIG_H = void,
+            .ZSTD_CONFIG_H = {},
             .ZSTD_MULTITHREAD_SUPPORT_DEFAULT = null,
             .ZSTD_LEGACY_SUPPORT = null,
         },
