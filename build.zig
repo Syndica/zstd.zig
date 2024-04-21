@@ -15,8 +15,8 @@ pub fn build(b: *std.Build) void {
     });
     zstd_lib.linkLibC();
     zstd_lib.addIncludePath(.{ .path = ZSTD_C_PATH });
-    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd.h" }, "");
-    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd_errors.h" }, "");
+    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd.h" }, "zstd.h");
+    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd_errors.h" }, "zstd_errors.h");
 
     const config_header = b.addConfigHeader(
         .{

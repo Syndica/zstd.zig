@@ -467,7 +467,7 @@ test "streaming compress" {
     var out: [test_str.len]u8 = undefined;
     var out_fbs = std.io.fixedBufferStream(&out);
 
-    var in_buf = try testing.allocator.alloc(u8, comp.Compressor.recommInSize());
+    const in_buf = try testing.allocator.alloc(u8, comp.Compressor.recommInSize());
     var out_buf = try testing.allocator.alloc(u8, comp.Compressor.recommOutSize());
     defer testing.allocator.free(in_buf);
     defer testing.allocator.free(out_buf);
