@@ -61,10 +61,11 @@ pub fn build(b: *std.Build) void {
     zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
     b.installArtifact(zstd_lib);
 
-    _ = b.addModule(package_name, .{
+    const module = b.addModule(package_name, .{
         .root_source_file = .{ .path = package_path },
         .imports = &.{},
     });
+    module.linkLibrary(zstd_lib);
 
     // tests
     const tests = b.addTest(.{
