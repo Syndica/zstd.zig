@@ -14,9 +14,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     zstd_lib.linkLibC();
-    zstd_lib.addIncludePath(.{ .path = ZSTD_C_PATH });
-    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd.h" }, "zstd.h");
-    zstd_lib.installHeader(.{ .path = ZSTD_C_PATH ++ "/zstd_errors.h" }, "zstd_errors.h");
+    zstd_lib.addIncludePath(b.path(ZSTD_C_PATH));
+    zstd_lib.installHeader(b.path(ZSTD_C_PATH ++ "/zstd.h"), "zstd.h");
+    zstd_lib.installHeader(b.path(ZSTD_C_PATH ++ "/zstd_errors.h"), "zstd_errors.h");
 
     const config_header = b.addConfigHeader(
         .{
@@ -58,11 +58,11 @@ pub fn build(b: *std.Build) void {
         ZSTD_C_PATH ++ "/decompress/zstd_decompress_block.c",
         ZSTD_C_PATH ++ "/decompress/huf_decompress.c",
     } });
-    zstd_lib.addAssemblyFile(.{ .path = ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S" });
+    zstd_lib.addAssemblyFile(b.path(ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S"));
     b.installArtifact(zstd_lib);
 
     const module = b.addModule(package_name, .{
-        .root_source_file = .{ .path = package_path },
+        .root_source_file = b.path(package_path),
         .imports = &.{},
     });
     module.linkLibrary(zstd_lib);
@@ -71,7 +71,7 @@ pub fn build(b: *std.Build) void {
     const tests = b.addTest(.{
         .target = target,
         .optimize = optimize,
-        .root_source_file = .{ .path = "src/tests.zig" },
+        .root_source_file = b.path("src/tests.zig"),
     });
     tests.linkLibrary(zstd_lib);
 

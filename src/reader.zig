@@ -11,24 +11,23 @@ pub const Reader = struct {
     decompressor: Decompressor,
     pos: usize = 0,
 
-    pub const R = std.io.Reader(*Reader, Error, read);
-
-    const Self = @This();
-
-    pub fn init(
-        memory: []u8,
-    ) !@This() {
+    pub fn init(memory: []u8) !@This() {
         return .{
             .memory = memory,
             .decompressor = try Decompressor.init(.{}),
         };
     }
 
-    pub fn reader(self: *Self) R {
+    pub fn deinit(self: Reader) void {
+        self.decompressor.deinit();
+    }
+
+    pub const R = std.io.Reader(*Reader, Error, read);
+    pub fn reader(self: *Reader) R {
         return .{ .context = self };
     }
 
-    pub fn read(self: *Self, buf: []u8) Error!usize {
+    pub fn read(self: *Reader, buf: []u8) Error!usize {
         if (self.pos == self.memory.len) {
             return 0;
         }
