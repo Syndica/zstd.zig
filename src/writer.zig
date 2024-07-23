@@ -4,7 +4,7 @@ const Compressor = @import("compress.zig").Compressor;
 const types = @import("types.zig");
 const InBuffer = types.InBuffer;
 const OutBuffer = types.OutBuffer;
-const Error = @import("error.zig").Error;
+const ZstdError = @import("error.zig").Error;
 
 pub inline fn writerCtx(
     inner_writer: anytype,
@@ -25,6 +25,7 @@ pub fn WriterCtx(comptime InnerWriter: type) type {
         out_buffer: []u8,
         const Self = @This();
 
+        const Error = ZstdError || InnerWriter.Error;
         pub const Writer = std.io.Writer(Self, Error, zstdWrite);
 
         pub inline fn writer(ctx: Self) Writer {
