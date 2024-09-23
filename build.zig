@@ -7,21 +7,20 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    const ZSTD_C_PATH = "vendor/lib";
+    const zstd_dep = b.dependency("zstd", .{});
+
     const zstd_lib = b.addStaticLibrary(.{
         .name = package_name,
         .target = target,
         .optimize = optimize,
     });
     zstd_lib.linkLibC();
-    zstd_lib.addIncludePath(b.path(ZSTD_C_PATH));
-    zstd_lib.installHeader(b.path(ZSTD_C_PATH ++ "/zstd.h"), "zstd.h");
-    zstd_lib.installHeader(b.path(ZSTD_C_PATH ++ "/zstd_errors.h"), "zstd_errors.h");
+    zstd_lib.addIncludePath(zstd_dep.path("lib"));
+    zstd_lib.installHeader(zstd_dep.path("lib/zstd.h"), "zstd.h");
+    zstd_lib.installHeader(zstd_dep.path("lib/zstd_errors.h"), "zstd_errors.h");
 
     const config_header = b.addConfigHeader(
-        .{
-            .style = .blank,
-        },
+        .{ .style = .blank },
         .{
             .ZSTD_CONFIG_H = {},
             .ZSTD_MULTITHREAD_SUPPORT_DEFAULT = null,
@@ -29,36 +28,39 @@ pub fn build(b: *std.Build) void {
         },
     );
     zstd_lib.addConfigHeader(config_header);
-    zstd_lib.addCSourceFiles(.{ .files = &.{
-        ZSTD_C_PATH ++ "/common/debug.c",
-        ZSTD_C_PATH ++ "/common/entropy_common.c",
-        ZSTD_C_PATH ++ "/common/error_private.c",
-        ZSTD_C_PATH ++ "/common/fse_decompress.c",
-        ZSTD_C_PATH ++ "/common/pool.c",
-        ZSTD_C_PATH ++ "/common/threading.c",
-        ZSTD_C_PATH ++ "/common/xxhash.c",
-        ZSTD_C_PATH ++ "/common/zstd_common.c",
+    zstd_lib.addCSourceFiles(.{
+        .root = zstd_dep.path("lib"),
+        .files = &.{
+            "common/debug.c",
+            "common/entropy_common.c",
+            "common/error_private.c",
+            "common/fse_decompress.c",
+            "common/pool.c",
+            "common/threading.c",
+            "common/xxhash.c",
+            "common/zstd_common.c",
 
-        ZSTD_C_PATH ++ "/compress/zstd_double_fast.c",
-        ZSTD_C_PATH ++ "/compress/zstd_compress_literals.c",
-        ZSTD_C_PATH ++ "/compress/zstdmt_compress.c",
-        ZSTD_C_PATH ++ "/compress/zstd_opt.c",
-        ZSTD_C_PATH ++ "/compress/zstd_compress_sequences.c",
-        ZSTD_C_PATH ++ "/compress/zstd_lazy.c",
-        ZSTD_C_PATH ++ "/compress/hist.c",
-        ZSTD_C_PATH ++ "/compress/zstd_ldm.c",
-        ZSTD_C_PATH ++ "/compress/huf_compress.c",
-        ZSTD_C_PATH ++ "/compress/zstd_compress_superblock.c",
-        ZSTD_C_PATH ++ "/compress/zstd_compress.c",
-        ZSTD_C_PATH ++ "/compress/fse_compress.c",
-        ZSTD_C_PATH ++ "/compress/zstd_fast.c",
+            "compress/zstd_double_fast.c",
+            "compress/zstd_compress_literals.c",
+            "compress/zstdmt_compress.c",
+            "compress/zstd_opt.c",
+            "compress/zstd_compress_sequences.c",
+            "compress/zstd_lazy.c",
+            "compress/hist.c",
+            "compress/zstd_ldm.c",
+            "compress/huf_compress.c",
+            "compress/zstd_compress_superblock.c",
+            "compress/zstd_compress.c",
+            "compress/fse_compress.c",
+            "compress/zstd_fast.c",
 
-        ZSTD_C_PATH ++ "/decompress/zstd_decompress.c",
-        ZSTD_C_PATH ++ "/decompress/zstd_ddict.c",
-        ZSTD_C_PATH ++ "/decompress/zstd_decompress_block.c",
-        ZSTD_C_PATH ++ "/decompress/huf_decompress.c",
-    } });
-    zstd_lib.addAssemblyFile(b.path(ZSTD_C_PATH ++ "/decompress/huf_decompress_amd64.S"));
+            "decompress/zstd_decompress.c",
+            "decompress/zstd_ddict.c",
+            "decompress/zstd_decompress_block.c",
+            "decompress/huf_decompress.c",
+        },
+    });
+    zstd_lib.addAssemblyFile(zstd_dep.path("lib/decompress/huf_decompress_amd64.S"));
     b.installArtifact(zstd_lib);
 
     const module = b.addModule(package_name, .{
