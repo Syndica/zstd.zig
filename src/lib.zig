@@ -1,3 +1,4 @@
+pub const c = @import("c.zig");
 pub usingnamespace @import("compress.zig");
 pub usingnamespace @import("decompress.zig");
 pub usingnamespace @import("types.zig");
