@@ -1,12 +1,13 @@
 const std = @import("std");
-const lib = @import("lib.zig");
+const zstd = @import("zstd");
 
-test {
-    std.testing.log_level = std.log.Level.err;
-    std.testing.refAllDecls(lib);
+comptime {
+    std.testing.refAllDecls(zstd);
 }
 
 test "writing & reading" {
+    std.testing.log_level = std.log.Level.err;
+
     const test_data = blk: {
         var bytes: [32]u8 = undefined;
         @memset(&bytes, 0);
@@ -20,10 +21,10 @@ test "writing & reading" {
     var compressed_data = std.ArrayList(u8).init(std.testing.allocator);
     defer compressed_data.deinit();
 
-    const compressor = try lib.Compressor.init(.{});
+    const compressor = try zstd.Compressor.init(.{});
     defer compressor.deinit();
     var buffer: [128]u8 = undefined;
-    const writer_ctx = lib.writerCtx(compressed_data.writer(), &compressor, &buffer);
+    const writer_ctx = zstd.writerCtx(compressed_data.writer(), &compressor, &buffer);
     const writer = writer_ctx.writer();
 
     try writer.writeAll(&test_data);
@@ -31,7 +32,7 @@ test "writing & reading" {
 
     try std.testing.expect(compressed_data.items.len <= test_data.len);
 
-    var reader_state = try lib.Reader.init(compressed_data.items);
+    var reader_state = try zstd.Reader.init(compressed_data.items);
     defer reader_state.deinit();
     const reader = reader_state.reader();
 
