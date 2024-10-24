@@ -1,33 +1,27 @@
 const std = @import("std");
 
-const package_name = "zstd";
-const package_path = "src/lib.zig";
-
 pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
+    const test_step = b.step("test", "Run library tests");
+
     const zstd_dep = b.dependency("zstd", .{});
 
     const zstd_lib = b.addStaticLibrary(.{
-        .name = package_name,
+        .name = "zstd",
         .target = target,
         .optimize = optimize,
     });
+    b.installArtifact(zstd_lib);
     zstd_lib.linkLibC();
     zstd_lib.addIncludePath(zstd_dep.path("lib"));
     zstd_lib.installHeader(zstd_dep.path("lib/zstd.h"), "zstd.h");
     zstd_lib.installHeader(zstd_dep.path("lib/zstd_errors.h"), "zstd_errors.h");
 
-    const config_header = b.addConfigHeader(
-        .{ .style = .blank },
-        .{
-            .ZSTD_CONFIG_H = {},
-            .ZSTD_MULTITHREAD_SUPPORT_DEFAULT = null,
-            .ZSTD_LEGACY_SUPPORT = null,
-        },
-    );
-    zstd_lib.addConfigHeader(config_header);
+    zstd_lib.root_module.addCMacro("ZSTD_MULTITHREAD", "");
+    zstd_lib.root_module.addCMacro("ZSTD_STATIC_LINKING_ONLY", "");
+
     zstd_lib.addCSourceFiles(.{
         .root = zstd_dep.path("lib"),
         .files = &.{
@@ -61,24 +55,19 @@ pub fn build(b: *std.Build) void {
         },
     });
     zstd_lib.addAssemblyFile(zstd_dep.path("lib/decompress/huf_decompress_amd64.S"));
-    b.installArtifact(zstd_lib);
 
-    const module = b.addModule(package_name, .{
-        .root_source_file = b.path(package_path),
-        .imports = &.{},
+    const zstd_mod = b.addModule("zstd", .{
+        .root_source_file = b.path("src/lib.zig"),
     });
-    module.linkLibrary(zstd_lib);
+    zstd_mod.linkLibrary(zstd_lib);
 
-    // tests
-    const tests = b.addTest(.{
+    const tests_exe = b.addTest(.{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("src/tests.zig"),
     });
-    tests.linkLibrary(zstd_lib);
+    tests_exe.root_module.addImport("zstd", zstd_mod);
 
-    const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step("test", "Run library tests");
-    test_step.dependOn(&zstd_lib.step);
-    test_step.dependOn(&run_tests.step);
+    const tests_exe_run = b.addRunArtifact(tests_exe);
+    test_step.dependOn(&tests_exe_run.step);
 }
