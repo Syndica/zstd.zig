@@ -7,11 +7,11 @@ const OutBuffer = types.OutBuffer;
 const Error = @import("error.zig").Error;
 
 pub const Reader = struct {
-    memory: []u8,
+    memory: []const u8,
     decompressor: Decompressor,
     pos: usize = 0,
 
-    pub fn init(memory: []u8) !@This() {
+    pub fn init(memory: []const u8) !@This() {
         return .{
             .memory = memory,
             .decompressor = try Decompressor.init(.{}),
