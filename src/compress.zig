@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("c.zig");
+const c = @import("c");
 const InBuffer = @import("types.zig").InBuffer;
 const OutBuffer = @import("types.zig").OutBuffer;
 const ResetDirective = @import("types.zig").ResetDirective;

@@ -1,7 +1,10 @@
-pub const c = @import("c.zig");
-pub usingnamespace @import("compress.zig");
-pub usingnamespace @import("decompress.zig");
-pub usingnamespace @import("types.zig");
-pub usingnamespace @import("error.zig");
-pub usingnamespace @import("reader.zig");
-pub usingnamespace @import("writer.zig");
+const compress = @import("compress.zig");
+const decompress = @import("decompress.zig");
+const types = @import("types.zig");
+const errors = @import("error.zig");
+const reader = @import("reader.zig");
+const writer = @import("writer.zig");
+
+pub const Compressor = compress.Compressor;
+pub const writerCtx = writer.writerCtx;
+pub const Reader = reader.Reader;

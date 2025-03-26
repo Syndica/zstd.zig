@@ -1,10 +1,11 @@
 .{
-    .name = "zstd",
+    .name = .zstd,
+    .fingerprint = 0x72fd505e092a0bf1,
     .version = "0.0.1",
     .dependencies = .{
         .zstd = .{
-            .url = "https://github.com/facebook/zstd/archive/794ea1b0afca0f020f4e57b6732332231fb23c70.tar.gz",
-            .hash = "1220cc97075e331a87cb201c03a018a1522325d6aa844619a461462fbfdaedb38c42",
+            .url = "git+https://github.com/facebook/zstd#794ea1b0afca0f020f4e57b6732332231fb23c70",
+            .hash = "N-V-__8AAGHFfQBd9HkISearYAEoBRuWI2GQG3Bvdcv_4uuN",
         },
     },
     .paths = .{
