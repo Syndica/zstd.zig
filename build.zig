@@ -22,7 +22,7 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .target = target,
             .optimize = optimize,
-            .pic = force_pic,
+            .pic = if (force_pic == true) true else null,
         }),
     });
     b.installArtifact(zstd_lib);
