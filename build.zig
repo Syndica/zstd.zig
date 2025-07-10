@@ -8,14 +8,26 @@ pub fn build(b: *std.Build) void {
 
     const zstd_dep = b.dependency("zstd", .{});
 
-    const zstd_lib = b.addStaticLibrary(.{
-        .name = "zstd",
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("src/headers.h"),
         .target = target,
         .optimize = optimize,
     });
+    translate_c.addIncludePath(zstd_dep.path("lib"));
+
+    const force_pic = b.option(bool, "force_pic", "Forces PIC enabled for this library");
+    const zstd_lib = b.addLibrary(.{
+        .name = "zstd",
+        .linkage = .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .pic = force_pic,
+        }),
+    });
     b.installArtifact(zstd_lib);
+
     zstd_lib.linkLibC();
-    zstd_lib.addIncludePath(zstd_dep.path("lib"));
     zstd_lib.installHeader(zstd_dep.path("lib/zstd.h"), "zstd.h");
     zstd_lib.installHeader(zstd_dep.path("lib/zstd_errors.h"), "zstd_errors.h");
 
@@ -60,6 +72,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/lib.zig"),
     });
     zstd_mod.linkLibrary(zstd_lib);
+    zstd_mod.addAnonymousImport("c", .{ .root_source_file = translate_c.getOutput() });
 
     const tests_exe = b.addTest(.{
         .target = target,
