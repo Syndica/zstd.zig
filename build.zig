@@ -75,9 +75,11 @@ pub fn build(b: *std.Build) void {
     zstd_mod.addAnonymousImport("c", .{ .root_source_file = translate_c.getOutput() });
 
     const tests_exe = b.addTest(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/tests.zig"),
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .root_source_file = b.path("src/tests.zig"),
+        }),
     });
     tests_exe.root_module.addImport("zstd", zstd_mod);
 
