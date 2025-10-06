@@ -22,7 +22,7 @@ pub const Reader = struct {
         self.decompressor.deinit();
     }
 
-    pub const R = std.io.Reader(*Reader, Error, read);
+    pub const R = std.io.GenericReader(*Reader, Error, read);
     pub fn reader(self: *Reader) R {
         return .{ .context = self };
     }
